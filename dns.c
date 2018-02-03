@@ -3,7 +3,7 @@
 
 BOOL RetrieveDNS(LPWSTR pszAdapterName, CHAR *dns)
 {
-    DWORD dwError, dwSize;
+	DWORD dwError, dwSize;
 	CHAR TmpBuffer[64];
 	DHCPCAPI_PARAMS DNSParams = {
 			0,							// Flags
