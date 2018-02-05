@@ -27,52 +27,28 @@ func CreateShortcut(path, link string) error {
 	return nil
 }
 
-func ShortcutTarget(link string) (string, error) {
-	target, _, _, err := resolveShortcut(link)
-	if err != nil {
-		return "", err
-	}
-	return target, nil
-}
-
-func ShortcutArgs(link string) (string, error) {
-	_, args, _, err := resolveShortcut(link)
-	if err != nil {
-		return "", err
-	}
-	return args, nil
-}
-
-func ShortcutIcon(link string) (string, error) {
-	_, _, icon, err := resolveShortcut(link)
-	if err != nil {
-		return "", err
-	}
-	return icon, nil
-}
-
-func resolveShortcut(link string) (string, string, string, error) {
+func ResolveShortcut(link string) (target, icon, args string, err error) {
 	l, err := syscall.UTF16PtrFromString(link)
 	if err != nil {
-		return "", "", "", err
+		return
 	}
 	n := 1024
-	target := make([]uint16, n)
-	args := make([]uint16, n)
-	icon := make([]uint16, n)
-
+	trg := make([]uint16, n)
+	arg := make([]uint16, n)
+	ico := make([]uint16, n)
 	hres := C.ResolveShortcut((*C.WCHAR)(l),
-		(*C.WCHAR)(&target[0]), C.int(n),
-		(*C.WCHAR)(&args[0]), C.int(n),
-		(*C.WCHAR)(&icon[0]), C.int(n))
-
+		(*C.WCHAR)(&trg[0]), C.int(n),
+		(*C.WCHAR)(&arg[0]), C.int(n),
+		(*C.WCHAR)(&ico[0]), C.int(n))
 	if hres != C.S_OK {
 		hr := uint32(hres)
 		s := fmt.Sprintf("ResolveShortcut: %s HRESULT=%X\n", link, hr)
-		return "", "", "", errors.New(s)
+		err = errors.New(s)
+		return
 	}
-	starget := syscall.UTF16ToString(target)
-	sargs := syscall.UTF16ToString(args)
-	sicon := syscall.UTF16ToString(icon)
-	return starget, sargs, sicon, nil
+	target = syscall.UTF16ToString(trg)
+	icon = syscall.UTF16ToString(ico)
+	args = syscall.UTF16ToString(arg)
+	err = nil
+	return
 }
