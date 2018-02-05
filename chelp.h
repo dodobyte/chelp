@@ -10,7 +10,15 @@ BOOL RetrieveDNS(LPWSTR pszAdapterName, CHAR *dns);
 int LZ4_decompress_safe(const char* src, char* dst, int compressedSize, int dstCapacity);
 
 // shortcut.cpp
-HRESULT CreateShortcut(LPCWSTR lpszPathObj, LPCWSTR lpszPathLink);
-HRESULT ResolveShortcut(LPCWSTR lpszLinkFile, LPWSTR lpszPath, DWORD dwPathLen);
+HRESULT CreateShortcut(WCHAR *path, WCHAR *link);
+HRESULT ResolveShortcut(
+	WCHAR *link,
+	WCHAR *target,
+	int ntarget,
+	WCHAR *args,
+	int nargs,
+	WCHAR *icon,
+	int nicon
+	);
 
 #endif

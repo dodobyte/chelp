@@ -3,10 +3,9 @@
 #include <windows.h>
 #include <shobjidl.h>
 #include <shlguid.h>
-#include <strsafe.h>
 
 extern "C"
-HRESULT CreateShortcut(LPCWSTR lpszPathObj, LPCWSTR lpszPathLink)
+HRESULT CreateShortcut(WCHAR *path, WCHAR *link)
 {
 	HRESULT hres;
 	BOOL init = FALSE;
@@ -32,7 +31,7 @@ HRESULT CreateShortcut(LPCWSTR lpszPathObj, LPCWSTR lpszPathLink)
 	}
 
 	// Set the path to the shortcut target.
-	hres = psl->SetPath(lpszPathObj);
+	hres = psl->SetPath(path);
 	if (!SUCCEEDED(hres)) {
 		goto Exit;
 	}
@@ -45,7 +44,7 @@ HRESULT CreateShortcut(LPCWSTR lpszPathObj, LPCWSTR lpszPathLink)
 	}
 
 	// Save the link by calling IPersistFile::Save.
-	hres = ppf->Save(lpszPathLink, TRUE);
+	hres = ppf->Save(link, TRUE);
 	if (!SUCCEEDED(hres)) {
 		goto Exit;
 	}
@@ -64,14 +63,22 @@ Exit:
 }
 
 extern "C"
-HRESULT ResolveShortcut(LPCWSTR lpszLinkFile, LPWSTR lpszPath, DWORD dwPathLen)
+HRESULT ResolveShortcut(
+	WCHAR *link,
+	WCHAR *target,
+	int ntarget,
+	WCHAR *args,
+	int nargs,
+	WCHAR *icon,
+	int nicon
+	)
 {
 	HRESULT hres;
+	int iconidx = 0;
 	BOOL init = FALSE;
 	IShellLink* psl = NULL;
 	IPersistFile* ppf = NULL;
 	WIN32_FIND_DATA wfd = {0};
-	WCHAR szGotPath[MAX_PATH] = {0};
 
 	hres = CoInitialize(NULL);
 	if (!SUCCEEDED(hres)) {
@@ -98,7 +105,7 @@ HRESULT ResolveShortcut(LPCWSTR lpszLinkFile, LPWSTR lpszPath, DWORD dwPathLen)
 	}
 
 	// Load the shortcut.
-	hres = ppf->Load(lpszLinkFile, STGM_READ);
+	hres = ppf->Load(link, STGM_READ);
 	if (!SUCCEEDED(hres)) {
 		goto Exit;
 	}
@@ -110,12 +117,19 @@ HRESULT ResolveShortcut(LPCWSTR lpszLinkFile, LPWSTR lpszPath, DWORD dwPathLen)
 	}
 
 	// Get the path to the link target.
-	hres = psl->GetPath(szGotPath, MAX_PATH, (WIN32_FIND_DATA*)&wfd, 0);
+	hres = psl->GetPath(target, ntarget, (WIN32_FIND_DATA*)&wfd, 0);
 	if (!SUCCEEDED(hres)) {
 		goto Exit;
 	}
 
-	hres = StringCbCopy(lpszPath, dwPathLen * sizeof(WCHAR), szGotPath);
+	// Get the arguments of the link.
+	hres = psl->GetArguments(args, nargs);
+	if (!SUCCEEDED(hres)) {
+		goto Exit;
+	}
+
+	// Get the icon location of the shortcut.
+	hres = psl->GetIconLocation(icon, nicon, &iconidx);
 	if (!SUCCEEDED(hres)) {
 		goto Exit;
 	}
