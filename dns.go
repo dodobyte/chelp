@@ -1,6 +1,6 @@
 package chelp
 
-//#cgo LDFLAGS: -ldhcpcsvc
+//#cgo LDFLAGS: -ldhcpcsvc -static
 //#include "chelp.h"
 import "C"
 import (

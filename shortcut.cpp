@@ -1,6 +1,7 @@
 #define UNICODE
 
 #include <windows.h>
+#include <shlobj.h>
 #include <shobjidl.h>
 #include <shlguid.h>
 
@@ -111,7 +112,7 @@ HRESULT ResolveShortcut(
 	}
 
 	// Resolve the link.
-	hres = psl->Resolve(NULL, 0);
+	hres = psl->Resolve(NULL, SLR_NO_UI);
 	if (!SUCCEEDED(hres)) {
 		goto Exit;
 	}
